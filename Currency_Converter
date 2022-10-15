@@ -1,0 +1,34 @@
+import requests
+
+money_have = input().lower()
+r = requests.get(f'http://www.floatrates.com/daily/{money_have}.json').json()
+cache = dict()
+if money_have != "usd" and money_have != "eur":
+    cache["usd"] = r["usd"]["rate"]
+    cache["eur"] = r["eur"]["rate"]
+
+elif money_have == "usd" and money_have != "eur":
+    cache["usd"] = "1"
+    cache["eur"] = r["eur"]["rate"]
+
+elif money_have != "usd" and money_have == "eur":
+    cache["usd"] = r["usd"]["rate"]
+    cache["eur"] = "1"
+
+while True:
+    money_want = input().lower()
+    if money_want == "":
+        break
+    amount_of_money = float(input())
+    if money_want in cache:
+        otvet = amount_of_money * (float(cache[money_want]))
+        print("Checking the cache...")
+        print("Oh! It is in the cache!")
+        print(f"You received {round(otvet, 2)} {money_want.upper()}.")
+    else:
+        r1 = requests.get(f'http://www.floatrates.com/daily/{money_have}.json').json()
+        otvet = amount_of_money * float(r1[money_want]["rate"])
+        cache[money_want] = r[money_want]["rate"]
+        print("Checking the cache...")
+        print("Sorry, but it is not in the cache!")
+        print(f"You received {round(otvet, 2)} {money_want.upper()}.")
