@@ -1,0 +1,40 @@
+import requests
+from bs4 import BeautifulSoup
+import string
+import re
+import os
+
+number_of_page = int(input())
+type_of_article = input()
+
+for x in range(1, number_of_page + 1):
+    os.mkdir('C:/Users/user/PycharmProjects/Web Scraper/Web Scraper/task/Page_' + str(x))
+    os.chdir('C:/Users/user/PycharmProjects/Web Scraper/Web Scraper/task/Page_' + str(x))
+
+    page_response = requests.get('https://www.nature.com/nature/articles?sort=PubDate&year=2020&page='+ str(number_of_page))
+
+    main_soup = BeautifulSoup(page_response.content, 'html.parser')
+    links = []
+    marks = [a for a in string.punctuation]
+
+    article_soup = main_soup.findAll('span', {'class': 'c-meta__type'}, text= type_of_article) 
+
+    for news_article in article_soup:
+        links.append('https://www.nature.com' + news_article.find_parent('article').find('a', attrs={
+            'href': re.compile("articles")}).get('href'))
+
+    for url in links:
+        page_response_2 = requests.get(url) 
+
+        article_soup = BeautifulSoup(page_response_2.content, 'html.parser') 
+
+        article_title_soup = article_soup.find('h1', class_="c-article-magazine-title").text.strip()
+        str_list = [a for a in article_title_soup if a not in marks]
+
+        article_file_name = (''.join(str_list)).replace(' ', '_') + '.txt'
+
+        body_text = article_soup.find('div', class_='c-article-body main-content').text
+
+        article_file = open(article_file_name, 'w', encoding="UTF-8")
+        article_file.write(body_text)
+        article_file.close()
